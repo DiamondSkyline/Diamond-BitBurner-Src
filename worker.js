@@ -1,3 +1,6 @@
+//worker.js
+//DiamondSkyline
+
 /** @param {NS} ns */
 export async function main(ns) {
 
@@ -52,12 +55,12 @@ export async function main(ns) {
     ns.ui.openTail();
 
     ns.ui.resizeTail(
-        500,
-        500
+        490,
+        225
     );
 
     ns.ui.moveTail(
-        580,
+        0,
         0
     );
 
