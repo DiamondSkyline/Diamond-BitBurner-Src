@@ -1,4 +1,19 @@
 /** @param {NS} ns */
+    // ==========================================
+    // DRACULA PALETTE
+    // ==========================================
+
+    const PURPLE = "\x1b[38;2;189;147;249m";
+    const PINK   = "\x1b[38;2;255;121;198m";
+    const CYAN   = "\x1b[38;2;139;233;253m";
+    const GREEN  = "\x1b[38;2;80;250;123m";
+    const YELLOW = "\x1b[38;2;241;250;140m";
+    const RED    = "\x1b[38;2;255;85;85m";
+    const WHITE  = "\x1b[38;2;248;248;242m";
+    const MUTED  = "\x1b[38;2;98;114;164m";
+    const RESET  = "\x1b[0m";
+
+var rightBuffer = 25;
 export async function main(ns) {
 
     // ==========================================================
@@ -886,15 +901,15 @@ function printHeartbeat(
     // ========================================================
 
     ns.print(
-        "╔══════════════════════════════════════════════════╗"
+        "╔════════════════════════════════════════╗"
     );
 
     ns.print(
-        "║              HACKNET MANAGER                    ║"
+        `║          ${CYAN}HACKNET MANAGER${CYAN}               ║`
     );
 
     ns.print(
-        "╠══════════════════════════════════════════════════╣"
+        "╠════════════════════════════════════════╣"
     );
 
 
@@ -903,13 +918,13 @@ function printHeartbeat(
     // ========================================================
 
     ns.print(
-        "║ HACKNET STATUS                                   ║"
+        `║ ${YELLOW}HACKNET STATUS${RESET}                         ║`
     );
 
     ns.print(
         `║ Nodes       : ${padRight(
             `${nodes}/${config.maxNodes}`,
-            33
+            25
         )}║`
     );
 
@@ -919,7 +934,7 @@ function printHeartbeat(
                 production,
                 2
             )}/s`,
-            33
+            25
         )}║`
     );
 
@@ -929,7 +944,7 @@ function printHeartbeat(
                 money,
                 2
             )}`,
-            33
+            25
         )}║`
     );
 
@@ -939,7 +954,7 @@ function printHeartbeat(
                 available,
                 2
             )}`,
-            33
+            25
         )}║`
     );
 
@@ -949,7 +964,7 @@ function printHeartbeat(
                 totalInvestment,
                 2
             )}`,
-            33
+            25
         )}║`
     );
 
@@ -959,17 +974,17 @@ function printHeartbeat(
     // ========================================================
 
     ns.print(
-        "╠══════════════════════════════════════════════════╣"
+        "╠════════════════════════════════════════╣"
     );
 
     ns.print(
-        "║ NEXT UPGRADE                                     ║"
+        `║ ${YELLOW}NEXT UPGRADE${RESET}                           ║`
     );
 
     ns.print(
         `║ Target      : ${padRight(
             next,
-            33
+            25
         )}║`
     );
 
@@ -981,8 +996,8 @@ function printHeartbeat(
                     2
                 )}`
                 : "$0.00",
-            33
-        )}║`
+            23
+        )}  ║`
     );
 
     ns.print(
@@ -993,8 +1008,8 @@ function printHeartbeat(
                     4
                 )}/s`
                 : "$0.0000/s",
-            33
-        )}║` 
+            23
+        )}  ║` 
     );
 
 
@@ -1003,18 +1018,18 @@ function printHeartbeat(
     // ========================================================
 
     ns.print(
-        "╠══════════════════════════════════════════════════╣"
+        "╠════════════════════════════════════════╣"
     );
 
     ns.print(
-        "║ LAST ACTION                                      ║"
+        `║ ${YELLOW}LAST ACTION${YELLOW}                            ║`
     );
 
     ns.print(
         `║ ${padRight(
             lastAction,
-            47
-        )}║`
+            39
+        )}║ ` 
     );
 
 
@@ -1023,7 +1038,7 @@ function printHeartbeat(
     // ========================================================
 
     ns.print(
-        "╚══════════════════════════════════════════════════╝"
+        "╚════════════════════════════════════════╝"
     );
 }
 
