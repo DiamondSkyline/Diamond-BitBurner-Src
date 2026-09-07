@@ -3,39 +3,81 @@ export async function main(ns) {
 
     ns.disableLog("ALL");
 
+
     // ============================================================
     // CONFIG
     // ============================================================
 
-    const REFRESH = 1000;
+    const REFRESH =
+        1000;
 
-    // Target supplied by command line
-    const TARGET = ns.args[0];
+    const TARGET =
+        String(
+            ns.args[0] ||
+            "n00dles"
+        );
+
+    const WORKER =
+        "mainHack.js";
+
 
     // ============================================================
-    // COLORS
+    // DRACULA PALETTE
     // ============================================================
 
     const C = {
-        bg: "#111217",
-        panel: "#15171d",
-        panel2: "#1b1d24",
 
-        border: "#1b7a1b",
+        bg:
+            "#282a36",
 
-        text: "#b8b8ff",
-        bright: "#d0d0ff",
+        panel:
+            "#21222c",
 
-        green: "#35e05a",
-        red: "#ff5555",
-        yellow: "#f1fa8c",
+        panel2:
+            "#343746",
 
-        cyan: "#8be9fd",
-        purple: "#bd93f9",
-        orange: "#ffb86c",
+        border:
+            "#44475a",
 
-        gray: "#666677",
+        white:
+            "#f8f8f2",
+
+        gray:
+            "#6272a4",
+
+        green:
+            "#50fa7b",
+
+        red:
+            "#ff5555",
+
+        yellow:
+            "#f1fa8c",
+
+        cyan:
+            "#8be9fd",
+
+        purple:
+            "#bd93f9",
+
+        orange:
+            "#ffb86c",
+
+        pink:
+            "#ff79c6",
     };
+
+
+    // ============================================================
+    // REACT
+    //
+    // Intentionally NO JSX.
+    //
+    // This avoids Bitburner parser-sensitive constructs.
+    // ============================================================
+
+    const h =
+        React.createElement;
 
 
     // ============================================================
@@ -44,121 +86,346 @@ export async function main(ns) {
 
     ns.ui.openTail();
 
-    ns.ui.setTailTitle("STAT.TSX");
+    ns.ui.setTailTitle(
+        "STAT.TSX"
+    );
+
+    ns.ui.resizeTail(
+        1000,
+        900
+    );
+
+    ns.ui.moveTail(
+        20,
+        20
+    );
 
 
     // ============================================================
     // FORMATTERS
     // ============================================================
 
-    function money(n) {
+    function money(
+        value
+    ) {
 
-        if (!Number.isFinite(n))
-            return "---";
-
-        if (n >= 1e15)
-            return "$" + (n / 1e15).toFixed(2) + "q";
-
-        if (n >= 1e12)
-            return "$" + (n / 1e12).toFixed(2) + "t";
-
-        if (n >= 1e9)
-            return "$" + (n / 1e9).toFixed(2) + "b";
-
-        if (n >= 1e6)
-            return "$" + (n / 1e6).toFixed(1) + "m";
-
-        if (n >= 1e3)
-            return "$" + (n / 1e3).toFixed(1) + "k";
-
-        return "$" + n.toFixed(1);
-    }
-
-
-    function ram(n) {
-
-        if (!Number.isFinite(n))
-            return "---";
-
-        if (n >= 1024)
-            return (n / 1024).toFixed(1) + "TB";
-
-        return n.toFixed(0) + "GB";
-    }
-
-
-    function pct(current, maximum) {
-
-        if (maximum <= 0)
-            return 0;
-
-        return Math.min(
-            100,
-            Math.max(
-                0,
-                current / maximum * 100
+        if (
+            !Number.isFinite(
+                value
             )
+        ) {
+            return "$0";
+        }
+
+
+        if (
+            Math.abs(value) >=
+            1e15
+        ) {
+
+            return (
+                "$" +
+                (
+                    value /
+                    1e15
+                ).toFixed(2) +
+                "q"
+            );
+        }
+
+
+        if (
+            Math.abs(value) >=
+            1e12
+        ) {
+
+            return (
+                "$" +
+                (
+                    value /
+                    1e12
+                ).toFixed(2) +
+                "t"
+            );
+        }
+
+
+        if (
+            Math.abs(value) >=
+            1e9
+        ) {
+
+            return (
+                "$" +
+                (
+                    value /
+                    1e9
+                ).toFixed(2) +
+                "b"
+            );
+        }
+
+
+        if (
+            Math.abs(value) >=
+            1e6
+        ) {
+
+            return (
+                "$" +
+                (
+                    value /
+                    1e6
+                ).toFixed(2) +
+                "m"
+            );
+        }
+
+
+        if (
+            Math.abs(value) >=
+            1e3
+        ) {
+
+            return (
+                "$" +
+                (
+                    value /
+                    1e3
+                ).toFixed(1) +
+                "k"
+            );
+        }
+
+
+        return (
+            "$" +
+            value.toFixed(0)
         );
     }
 
 
-    function line(label, value, color) {
+    function ram(
+        value
+    ) {
+
+        if (
+            !Number.isFinite(
+                value
+            )
+        ) {
+            return "0GB";
+        }
+
+
+        if (
+            value >=
+            1024 * 1024
+        ) {
+
+            return (
+                (
+                    value /
+                    1024 /
+                    1024
+                ).toFixed(1) +
+                "PB"
+            );
+        }
+
+
+        if (
+            value >=
+            1024
+        ) {
+
+            return (
+                (
+                    value /
+                    1024
+                ).toFixed(1) +
+                "TB"
+            );
+        }
+
 
         return (
-            <div
-                style={{
-                    display: "flex",
-                    width: "100%",
-                    padding: "2px 0",
-                }}
-            >
-
-                <span
-                    style={{
-                        width: "155px",
-                        color: C.gray,
-                    }}
-                >
-                    {label}
-                </span>
-
-                <span
-                    style={{
-                        color: color || C.text,
-                        fontWeight: "bold",
-                    }}
-                >
-                    {value}
-                </span>
-
-            </div>
+            value.toFixed(0) +
+            "GB"
         );
     }
 
 
-    function section(title) {
+    function percent(
+        value
+    ) {
+
+        if (
+            !Number.isFinite(
+                value
+            )
+        ) {
+            return "0.0%";
+        }
+
 
         return (
-            <div
-                style={{
-                    marginTop: "8px",
-                    marginBottom: "3px",
-
-                    paddingBottom: "2px",
-
-                    borderBottom:
-                        `1px solid ${C.border}`,
-
-                    color: C.purple,
-
-                    fontWeight: "bold",
-
-                    fontSize: "14px",
-                }}
-            >
-                {title}
-            </div>
+            (
+                value *
+                100
+            ).toFixed(1) +
+            "%"
         );
+    }
+
+
+    function formatTime(
+        milliseconds
+    ) {
+
+        if (
+            !Number.isFinite(
+                milliseconds
+            ) ||
+            milliseconds <= 0
+        ) {
+
+            return "N/A";
+        }
+
+
+        const seconds =
+            milliseconds /
+            1000;
+
+
+        if (
+            seconds < 60
+        ) {
+
+            return (
+                seconds.toFixed(1) +
+                "s"
+            );
+        }
+
+
+        const minutes =
+            Math.floor(
+                seconds /
+                60
+            );
+
+        const remainingSeconds =
+            Math.floor(
+                seconds %
+                60
+            );
+
+
+        if (
+            minutes < 60
+        ) {
+
+            return (
+                minutes +
+                "m " +
+                remainingSeconds +
+                "s"
+            );
+        }
+
+
+        const hours =
+            Math.floor(
+                minutes /
+                60
+            );
+
+        const remainingMinutes =
+            minutes %
+            60;
+
+
+        return (
+            hours +
+            "h " +
+            remainingMinutes +
+            "m"
+        );
+    }
+
+
+    function number(
+        value,
+        decimals
+    ) {
+
+        if (
+            !Number.isFinite(
+                value
+            )
+        ) {
+
+            return "0";
+        }
+
+
+        return ns.format.number(
+            value,
+            decimals
+        );
+    }
+
+
+    function safeMoney(
+        server
+    ) {
+
+        try {
+
+            return ns.getServerMoneyAvailable(
+                server
+            );
+
+        } catch {
+
+            return 0;
+        }
+    }
+
+
+    function safeMaxMoney(
+        server
+    ) {
+
+        try {
+
+            return ns.getServerMaxMoney(
+                server
+            );
+
+        } catch {
+
+            return 0;
+        }
+    }
+
+
+    function safeGrowth(
+        server
+    ) {
+
+        try {
+
+            return ns.getServerGrowth(
+                server
+            );
+
+        } catch {
+
+            return 0;
+        }
     }
 
 
@@ -166,76 +433,696 @@ export async function main(ns) {
     // NETWORK DISCOVERY
     // ============================================================
 
-    function getServers() {
+    function scanNetwork() {
 
-        const found =
-            new Set(["home"]);
+        const network =
+            [];
+
+        const visited =
+            new Set();
 
         const queue =
             ["home"];
 
-        while (queue.length > 0) {
 
-            const current =
+        while (
+            queue.length > 0
+        ) {
+
+            const server =
                 queue.shift();
 
-            for (
-                const next of ns.scan(current)
+
+            if (
+                !server ||
+                visited.has(
+                    server
+                )
             ) {
 
-                if (!found.has(next)) {
+                continue;
+            }
 
-                    found.add(next);
 
-                    queue.push(next);
+            visited.add(
+                server
+            );
+
+            network.push(
+                server
+            );
+
+
+            for (
+                const next of ns.scan(
+                    server
+                )
+            ) {
+
+                if (
+                    !visited.has(
+                        next
+                    )
+                ) {
+
+                    queue.push(
+                        next
+                    );
                 }
             }
         }
 
-        return [...found];
+
+        return network;
     }
 
 
     // ============================================================
-    // RENDER
+    // WORKER INFORMATION
+    // ============================================================
+
+    function getWorkerInfo(
+        server
+    ) {
+
+        let processes =
+            [];
+
+
+        try {
+
+            processes =
+                ns.ps(
+                    server
+                );
+
+        } catch {
+
+            processes =
+                [];
+        }
+
+
+        let processCount =
+            0;
+
+        let threads =
+            0;
+
+
+        const targets =
+            new Set();
+
+
+        for (
+            const process of processes
+        ) {
+
+            if (
+                process.filename !==
+                WORKER
+            ) {
+
+                continue;
+            }
+
+
+            processCount++;
+
+            threads +=
+                process.threads;
+
+
+            if (
+                process.args &&
+                process.args.length > 0
+            ) {
+
+                targets.add(
+                    String(
+                        process.args[0]
+                    )
+                );
+            }
+        }
+
+
+        return {
+
+            processCount:
+                processCount,
+
+            threads:
+                threads,
+
+            targets:
+                targets,
+        };
+    }
+
+
+    // ============================================================
+    // CHEAPEST HACKNET UPGRADE
+    // ============================================================
+
+    function findCheapestUpgrade(
+        available
+    ) {
+
+        const candidates =
+            [];
+
+
+        const nodes =
+            ns.hacknet.numNodes();
+
+
+        // --------------------------------------------------------
+        // NEW NODE
+        // --------------------------------------------------------
+
+        if (
+            nodes < 25
+        ) {
+
+            let cost =
+                0;
+
+
+            try {
+
+                cost =
+                    ns.hacknet.getPurchaseNodeCost();
+
+            } catch {
+
+                cost =
+                    0;
+            }
+
+
+            if (
+                Number.isFinite(
+                    cost
+                ) &&
+                cost > 0 &&
+                cost <= available
+            ) {
+
+                candidates.push({
+
+                    name:
+                        "NEW NODE #" +
+                        nodes,
+
+                    cost:
+                        cost,
+
+                    payback:
+                        0,
+                });
+            }
+        }
+
+
+        // --------------------------------------------------------
+        // NODE UPGRADES
+        // --------------------------------------------------------
+
+        for (
+            let i = 0;
+            i < nodes;
+            i++
+        ) {
+
+            let levelCost =
+                0;
+
+            let ramCost =
+                0;
+
+            let coreCost =
+                0;
+
+
+            try {
+
+                levelCost =
+                    ns.hacknet.getLevelUpgradeCost(
+                        i,
+                        1
+                    );
+
+            } catch {
+
+                levelCost =
+                    0;
+            }
+
+
+            try {
+
+                ramCost =
+                    ns.hacknet.getRamUpgradeCost(
+                        i,
+                        1
+                    );
+
+            } catch {
+
+                ramCost =
+                    0;
+            }
+
+
+            try {
+
+                coreCost =
+                    ns.hacknet.getCoreUpgradeCost(
+                        i,
+                        1
+                    );
+
+            } catch {
+
+                coreCost =
+                    0;
+            }
+
+
+            if (
+                Number.isFinite(
+                    levelCost
+                ) &&
+                levelCost > 0 &&
+                levelCost <= available
+            ) {
+
+                candidates.push({
+
+                    name:
+                        "LEVEL #" +
+                        i,
+
+                    cost:
+                        levelCost,
+
+                    payback:
+                        0,
+                });
+            }
+
+
+            if (
+                Number.isFinite(
+                    ramCost
+                ) &&
+                ramCost > 0 &&
+                ramCost <= available
+            ) {
+
+                candidates.push({
+
+                    name:
+                        "RAM #" +
+                        i,
+
+                    cost:
+                        ramCost,
+
+                    payback:
+                        0,
+                });
+            }
+
+
+            if (
+                Number.isFinite(
+                    coreCost
+                ) &&
+                coreCost > 0 &&
+                coreCost <= available
+            ) {
+
+                candidates.push({
+
+                    name:
+                        "CORE #" +
+                        i,
+
+                    cost:
+                        coreCost,
+
+                    payback:
+                        0,
+                });
+            }
+        }
+
+
+        if (
+            candidates.length === 0
+        ) {
+
+            return {
+
+                name:
+                    "NONE",
+
+                cost:
+                    0,
+
+                payback:
+                    0,
+            };
+        }
+
+
+        candidates.sort(
+            (
+                a,
+                b
+            ) =>
+                a.cost -
+                b.cost
+        );
+
+
+        return candidates[0];
+    }
+
+
+    // ============================================================
+    // UI HELPERS
+    // ============================================================
+
+    function text(
+        value,
+        color
+    ) {
+
+        return h(
+            "span",
+            {
+                style: {
+
+                    color:
+                        color ||
+                        C.white,
+                },
+            },
+            String(
+                value
+            )
+        );
+    }
+
+
+    function label(
+        value
+    ) {
+
+        return text(
+            value,
+            C.gray
+        );
+    }
+
+
+    function section(
+        title
+    ) {
+
+        return h(
+            "div",
+            {
+                style: {
+
+                    marginTop:
+                        "9px",
+
+                    marginBottom:
+                        "4px",
+
+                    paddingBottom:
+                        "3px",
+
+                    borderBottom:
+                        "1px solid " +
+                        C.border,
+
+                    color:
+                        C.purple,
+
+                    fontWeight:
+                        "bold",
+
+                    fontSize:
+                        "14px",
+
+                    letterSpacing:
+                        "0.5px",
+                },
+            },
+
+            "◈ " +
+            title
+        );
+    }
+
+
+    function twoColumnRow(
+        leftLabel,
+        leftValue,
+        leftColor,
+        rightLabel,
+        rightValue,
+        rightColor
+    ) {
+
+        return h(
+            "div",
+            {
+                style: {
+
+                    display:
+                        "flex",
+
+                    width:
+                        "100%",
+
+                    lineHeight:
+                        "18px",
+
+                    whiteSpace:
+                        "nowrap",
+                },
+            },
+
+
+            h(
+                "div",
+                {
+                    style: {
+
+                        width:
+                            "50%",
+                    },
+                },
+
+                text(
+                    leftLabel +
+                    " ",
+                    C.gray
+                ),
+
+                text(
+                    leftValue,
+                    leftColor
+                )
+            ),
+
+
+            h(
+                "div",
+                {
+                    style: {
+
+                        width:
+                            "50%",
+                    },
+                },
+
+                text(
+                    rightLabel +
+                    " ",
+                    C.gray
+                ),
+
+                text(
+                    rightValue,
+                    rightColor
+                )
+            )
+        );
+    }
+
+
+    function threeColumnRow(
+        aLabel,
+        aValue,
+        aColor,
+
+        bLabel,
+        bValue,
+        bColor,
+
+        cLabel,
+        cValue,
+        cColor
+    ) {
+
+        return h(
+            "div",
+            {
+                style: {
+
+                    display:
+                        "flex",
+
+                    width:
+                        "100%",
+
+                    lineHeight:
+                        "18px",
+
+                    whiteSpace:
+                        "nowrap",
+                },
+            },
+
+
+            h(
+                "div",
+                {
+                    style: {
+                        width:
+                            "33.33%",
+                    },
+                },
+
+                text(
+                    aLabel +
+                    " ",
+                    C.gray
+                ),
+
+                text(
+                    aValue,
+                    aColor
+                )
+            ),
+
+
+            h(
+                "div",
+                {
+                    style: {
+                        width:
+                            "33.33%",
+                    },
+                },
+
+                text(
+                    bLabel +
+                    " ",
+                    C.gray
+                ),
+
+                text(
+                    bValue,
+                    bColor
+                )
+            ),
+
+
+            h(
+                "div",
+                {
+                    style: {
+                        width:
+                            "33.33%",
+                    },
+                },
+
+                text(
+                    cLabel +
+                    " ",
+                    C.gray
+                ),
+
+                text(
+                    cValue,
+                    cColor
+                )
+            )
+        );
+    }
+
+
+    // ============================================================
+    // MAIN RENDER
     // ============================================================
 
     function render() {
 
-        // IMPORTANT:
-        // Prevent the Bitburner tail from growing forever.
+        // ========================================================
+        // PLAYER
+        // ========================================================
 
-        ns.clearLog();
+        const player =
+            ns.getPlayer();
 
 
         // ========================================================
-        // BASIC NETWORK DATA
+        // NETWORK
         // ========================================================
 
         const servers =
-            getServers();
+            scanNetwork();
 
 
-        let rooted = 0;
+        let rooted =
+            0;
 
-        let totalRam = 0;
+        let totalRam =
+            0;
 
-        let usedRam = 0;
+        let usedRam =
+            0;
 
 
-        for (const server of servers) {
+        for (
+            const server of servers
+        ) {
 
             if (
-                ns.hasRootAccess(server)
+                ns.hasRootAccess(
+                    server
+                )
             ) {
 
                 rooted++;
 
                 totalRam +=
-                    ns.getServerMaxRam(server);
+                    ns.getServerMaxRam(
+                        server
+                    );
 
                 usedRam +=
-                    ns.getServerUsedRam(server);
+                    ns.getServerUsedRam(
+                        server
+                    );
             }
         }
 
@@ -243,226 +1130,1098 @@ export async function main(ns) {
         const availableRam =
             Math.max(
                 0,
-                totalRam - usedRam
+                totalRam -
+                usedRam
             );
 
 
         const utilization =
             totalRam > 0
-                ? usedRam / totalRam
+                ? usedRam /
+                  totalRam
                 : 0;
 
 
         // ========================================================
-        // PLAYER DATA
+        // MAINHACK
         // ========================================================
 
-        const player =
-            ns.getPlayer();
+        const workerRamCost =
+            ns.getScriptRam(
+                WORKER
+            );
 
-        const hackingLevel =
-            ns.getHackingLevel();
 
-        const hackingExp =
-            player.exp.hacking;
+        let deploymentServers =
+            0;
 
-        const homeMoney =
-            ns.getServerMoneyAvailable("home");
+        let deploymentProcesses =
+            0;
 
-        const strength =
-            player.skills.strength;
+        let deploymentThreads =
+            0;
 
-        const defense =
-            player.skills.defense;
+        let deploymentRam =
+            0;
 
-        const dexterity =
-            player.skills.dexterity;
 
-        const agility =
-            player.skills.agility;
+        const uniqueTargets =
+            new Set();
 
-        const charisma =
-            player.skills.charisma;
 
-        const intelligence =
-            player.skills.intelligence;
+        for (
+            const server of servers
+        ) {
 
-        const factions =
-            player.factions || [];
+            if (
+                !ns.hasRootAccess(
+                    server
+                )
+            ) {
 
-        const karma =
-            typeof ns.heart === "object"
-                ? ns.heart.break()
-                : 0;
+                continue;
+            }
+
+
+            const worker =
+                getWorkerInfo(
+                    server
+                );
+
+
+            if (
+                worker.processCount >
+                0
+            ) {
+
+                deploymentServers++;
+            }
+
+
+            deploymentProcesses +=
+                worker.processCount;
+
+
+            deploymentThreads +=
+                worker.threads;
+
+
+            deploymentRam +=
+                worker.threads *
+                workerRamCost;
+
+
+            for (
+                const target of worker.targets
+            ) {
+
+                uniqueTargets.add(
+                    target
+                );
+            }
+        }
 
 
         // ========================================================
-        // PLAYER JOB DATA
+        // TARGET
         // ========================================================
 
-        let currentJob =
-            "UNEMPLOYED";
+        let targetExists =
+            false;
 
-        let jobCompany =
-            "";
+        let targetServer =
+            null;
+
 
         try {
 
-            const jobs =
-                player.jobs || {};
+            targetExists =
+                ns.serverExists(
+                    TARGET
+                );
 
-            const companies =
-                Object.keys(jobs);
 
-            if (companies.length > 0) {
+            if (
+                targetExists
+            ) {
 
-                jobCompany =
-                    companies[companies.length - 1];
-
-                currentJob =
-                    jobs[jobCompany] ||
-                    "EMPLOYEE";
+                targetServer =
+                    ns.getServer(
+                        TARGET
+                    );
             }
 
         } catch {
 
-            currentJob =
-                "UNEMPLOYED";
+            targetExists =
+                false;
+
+            targetServer =
+                null;
         }
 
 
-        // ========================================================
-        // TARGET DATA
-        // ========================================================
+        let targetMoney =
+            0;
 
-        let targetExists = false;
+        let targetMaxMoney =
+            0;
 
-        let targetRooted = false;
+        let targetGrowth =
+            0;
 
-        let targetBackdoor = false;
+        let security =
+            0;
 
-        let targetHackLevel = 0;
+        let minimumSecurity =
+            0;
 
-        let targetChance = 0;
+        let targetRamUsed =
+            0;
 
-        let targetMoney = 0;
+        let targetRamMax =
+            0;
 
-        let targetMaxMoney = 0;
+        let hackLevel =
+            0;
 
-        let targetGrowth = 0;
+        let ports =
+            0;
 
-        let targetSecurity = 0;
+        let portsRequired =
+            0;
 
-        let targetMinSecurity = 0;
+        let hackTime =
+            0;
 
-        let targetRam = 0;
+        let growTime =
+            0;
 
-        let targetRamMax = 0;
-
-        let targetPorts = 0;
-
-        let targetPortsRequired = 0;
-
-
-        if (TARGET) {
-
-            targetExists =
-                servers.includes(TARGET);
-
-
-            if (targetExists) {
-
-                const s =
-                    ns.getServer(TARGET);
+        let weakenTime =
+            0;
 
 
-                targetRooted =
-                    s.hasAdminRights;
+        if (
+            targetExists
+        ) {
 
-                targetBackdoor =
-                    s.backdoorInstalled;
+            targetMoney =
+                safeMoney(
+                    TARGET
+                );
 
-                targetHackLevel =
-                    s.requiredHackingSkill;
+            targetMaxMoney =
+                safeMaxMoney(
+                    TARGET
+                );
 
-                targetMoney =
-                    ns.getServerMoneyAvailable(
+            targetGrowth =
+                safeGrowth(
+                    TARGET
+                );
+
+
+            security =
+                ns.getServerSecurityLevel(
+                    TARGET
+                );
+
+            minimumSecurity =
+                ns.getServerMinSecurityLevel(
+                    TARGET
+                );
+
+
+            targetRamUsed =
+                ns.getServerUsedRam(
+                    TARGET
+                );
+
+            targetRamMax =
+                ns.getServerMaxRam(
+                    TARGET
+                );
+
+
+            hackLevel =
+                targetServer.requiredHackingSkill ||
+                0;
+
+
+            ports =
+                targetServer.openPortCount ||
+                0;
+
+
+            portsRequired =
+                targetServer.numOpenPortsRequired ||
+                0;
+
+
+            try {
+
+                hackTime =
+                    ns.getHackTime(
                         TARGET
                     );
 
-                targetMaxMoney =
-                    ns.getServerMaxMoney(
+                growTime =
+                    ns.getGrowTime(
                         TARGET
                     );
 
-                targetGrowth =
-                    ns.getServerGrowth(
+                weakenTime =
+                    ns.getWeakenTime(
                         TARGET
                     );
 
-                targetSecurity =
-                    ns.getServerSecurityLevel(
-                        TARGET
-                    );
+            } catch {
 
-                targetMinSecurity =
-                    ns.getServerMinSecurityLevel(
-                        TARGET
-                    );
+                hackTime =
+                    0;
 
-                targetRam =
-                    ns.getServerUsedRam(
-                        TARGET
-                    );
+                growTime =
+                    0;
 
-                targetRamMax =
-                    ns.getServerMaxRam(
-                        TARGET
-                    );
-
-                targetPorts =
-                    s.openPortCount;
-
-                targetPortsRequired =
-                    s.numOpenPortsRequired;
-
-
-                try {
-
-                    targetChance =
-                        ns.hackAnalyzeChance(
-                            TARGET
-                        );
-
-                } catch {
-
-                    targetChance = 0;
-                }
+                weakenTime =
+                    0;
             }
         }
 
 
+        const moneyPercent =
+            targetMaxMoney > 0
+                ? targetMoney /
+                  targetMaxMoney
+                : 0;
+
+
+        const securityDifference =
+            security -
+            minimumSecurity;
+
+
         // ========================================================
-        // TARGET STATUS COLORS
+        // TARGET ACTION
         // ========================================================
 
-        let targetColor =
+        let action =
+            "HACK";
+
+        let actionColor =
+            C.cyan;
+
+
+        if (
+            securityDifference >
+            0.5
+        ) {
+
+            action =
+                "WEAKEN";
+
+            actionColor =
+                C.red;
+
+        } else if (
+            moneyPercent <
+            0.75
+        ) {
+
+            action =
+                "GROW";
+
+            actionColor =
+                C.green;
+        }
+
+
+        // ========================================================
+        // HACKNET
+        // ========================================================
+
+        const nodes =
+            ns.hacknet.numNodes();
+
+
+        let hacknetProduction =
+            0;
+
+        let totalLevel =
+            0;
+
+        let totalHacknetRam =
+            0;
+
+        let totalCores =
+            0;
+
+
+        for (
+            let i = 0;
+            i < nodes;
+            i++
+        ) {
+
+            const node =
+                ns.hacknet.getNodeStats(
+                    i
+                );
+
+
+            hacknetProduction +=
+                node.production;
+
+
+            totalLevel +=
+                node.level;
+
+
+            totalHacknetRam +=
+                node.ram;
+
+
+            totalCores +=
+                node.cores;
+        }
+
+
+        // ========================================================
+        // HACKNET INVESTMENT
+        // ========================================================
+
+        const investmentFile =
+            "hacknet-investment.txt";
+
+
+        let totalInvestment =
+            Number(
+                ns.read(
+                    investmentFile
+                )
+            );
+
+
+        if (
+            !Number.isFinite(
+                totalInvestment
+            )
+        ) {
+
+            totalInvestment =
+                0;
+        }
+
+
+        const reserve =
+            Math.max(
+                50000,
+                player.money *
+                0.5
+            );
+
+
+        const hacknetAvailable =
+            Math.max(
+                0,
+                player.money -
+                reserve
+            );
+
+
+        const nextNodeCost =
+            nodes < 25
+                ? ns.hacknet.getPurchaseNodeCost()
+                : 0;
+
+
+        const nextUpgrade =
+            findCheapestUpgrade(
+                hacknetAvailable
+            );
+
+
+        // ========================================================
+        // CLOUD SERVERS
+        // ========================================================
+
+        let cloudServers =
+            [];
+
+        let cloudLimit =
+            0;
+
+        let cloudRamLimit =
+            0;
+
+
+        try {
+
+            cloudServers =
+                ns.cloud.getServerNames();
+
+            cloudLimit =
+                ns.cloud.getServerLimit();
+
+            cloudRamLimit =
+                ns.cloud.getRamLimit();
+
+        } catch {
+
+            cloudServers =
+                [];
+
+            cloudLimit =
+                0;
+
+            cloudRamLimit =
+                0;
+        }
+
+
+        // ========================================================
+        // MONEY COLOR
+        // ========================================================
+
+        let targetMoneyColor =
+            C.red;
+
+
+        if (
+            moneyPercent >=
+            0.90
+        ) {
+
+            targetMoneyColor =
+                C.green;
+
+        } else if (
+            moneyPercent >=
+            0.50
+        ) {
+
+            targetMoneyColor =
+                C.yellow;
+        }
+
+
+        // ========================================================
+        // SECURITY COLOR
+        // ========================================================
+
+        let securityColor =
             C.green;
 
-        if (!TARGET) {
 
-            targetColor =
+        if (
+            securityDifference >
+            5
+        ) {
+
+            securityColor =
                 C.red;
 
-        } else if (!targetExists) {
+        } else if (
+            securityDifference >
+            1
+        ) {
 
-            targetColor =
-                C.red;
-
-        } else if (!targetRooted) {
-
-            targetColor =
+            securityColor =
                 C.yellow;
+        }
+
+
+        // ========================================================
+        // RAM COLOR
+        // ========================================================
+
+        let ramColor =
+            C.green;
+
+
+        if (
+            utilization >=
+            0.90
+        ) {
+
+            ramColor =
+                C.red;
+
+        } else if (
+            utilization >=
+            0.75
+        ) {
+
+            ramColor =
+                C.yellow;
+        }
+
+
+        // ========================================================
+        // ROOT COLOR
+        // ========================================================
+
+        const rootColor =
+            targetServer &&
+            targetServer.hasAdminRights
+                ? C.green
+                : C.red;
+
+
+        // ========================================================
+        // BACKDOOR COLOR
+        // ========================================================
+
+        const backdoorColor =
+            targetServer &&
+            targetServer.backdoorInstalled
+                ? C.green
+                : C.yellow;
+
+
+        // ========================================================
+        // BUILD UI
+        // ========================================================
+
+        const children =
+            [];
+
+
+        // ========================================================
+        // HEADER
+        // ========================================================
+
+        children.push(
+
+            h(
+                "div",
+                {
+                    style: {
+
+                        display:
+                            "flex",
+
+                        alignItems:
+                            "center",
+
+                        background:
+                            C.panel,
+
+                        borderBottom:
+                            "1px solid " +
+                            C.purple,
+
+                        padding:
+                            "7px 10px",
+
+                        marginBottom:
+                            "5px",
+                    },
+                },
+
+
+                h(
+                    "div",
+                    {
+                        style: {
+
+                            flex:
+                                1,
+
+                            color:
+                                C.purple,
+
+                            fontSize:
+                                "20px",
+
+                            fontWeight:
+                                "bold",
+                        },
+                    },
+
+                    "STAT.TSX"
+                ),
+
+
+                h(
+                    "div",
+                    {
+                        style: {
+
+                            color:
+                                C.green,
+
+                            fontWeight:
+                                "bold",
+
+                            fontSize:
+                                "12px",
+                        },
+                    },
+
+                    "● LIVE"
+                )
+            )
+        );
+
+
+        // ========================================================
+        // PLAYER
+        // ========================================================
+
+        children.push(
+            section(
+                "PLAYER"
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Hacking Level:",
+                number(
+                    player.skills.hacking,
+                    0
+                ),
+                C.cyan,
+
+                "Home Money:",
+                money(
+                    player.money
+                ),
+                C.green
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Hacking EXP:",
+                number(
+                    player.exp.hacking,
+                    0
+                ),
+                C.purple,
+
+                "City:",
+                player.city,
+                C.white
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Strength:",
+                player.skills.strength,
+                C.orange,
+
+                "Defense:",
+                player.skills.defense,
+                C.orange
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Dexterity:",
+                player.skills.dexterity,
+                C.orange,
+
+                "Agility:",
+                player.skills.agility,
+                C.orange
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Charisma:",
+                player.skills.charisma,
+                C.pink,
+
+                "Intelligence:",
+                player.skills.intelligence,
+                C.cyan
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Factions:",
+                player.factions.length,
+                C.purple,
+
+                "Jobs:",
+                Object.keys(
+                    player.jobs || {}
+                ).length,
+                C.yellow
+            )
+        );
+
+
+        // ========================================================
+        // NETWORK
+        // ========================================================
+
+        children.push(
+            section(
+                "NETWORK"
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Discovered:",
+                servers.length,
+                C.white,
+
+                "Rooted:",
+                rooted,
+                C.green
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "RAM Capacity:",
+                ram(
+                    totalRam
+                ),
+                C.cyan,
+
+                "RAM Used:",
+                ram(
+                    usedRam
+                ),
+                ramColor
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "RAM Available:",
+                ram(
+                    availableRam
+                ),
+                C.green,
+
+                "Utilization:",
+                percent(
+                    utilization
+                ),
+                ramColor
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Cloud Servers:",
+                cloudServers.length +
+                " / " +
+                cloudLimit,
+                C.purple,
+
+                "Cloud RAM Limit:",
+                ram(
+                    cloudRamLimit
+                ),
+                C.cyan
+            )
+        );
+
+
+        // ========================================================
+        // MAINHACK
+        // ========================================================
+
+        children.push(
+            section(
+                "MAINHACK DEPLOYMENT"
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Servers:",
+                deploymentServers,
+                C.white,
+
+                "Processes:",
+                deploymentProcesses,
+                C.cyan
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Threads:",
+                number(
+                    deploymentThreads,
+                    0
+                ),
+                C.purple,
+
+                "Worker RAM:",
+                ram(
+                    deploymentRam
+                ),
+                C.orange
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Unique Targets:",
+                uniqueTargets.size,
+                C.white,
+
+                "Target:",
+                TARGET,
+                C.cyan
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Action:",
+                action,
+                actionColor,
+
+                "Worker RAM/Thread:",
+                ram(
+                    workerRamCost
+                ),
+                C.gray
+            )
+        );
+
+
+        // ========================================================
+        // HACKNET
+        // ========================================================
+
+        children.push(
+            section(
+                "HACKNET"
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Nodes:",
+                nodes +
+                " / 25",
+                C.purple,
+
+                "Production:",
+                money(
+                    hacknetProduction
+                ) +
+                "/s",
+                C.green
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Total Level:",
+                totalLevel,
+                C.cyan,
+
+                "Total RAM:",
+                ram(
+                    totalHacknetRam
+                ),
+                C.orange
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Total Cores:",
+                totalCores,
+                C.orange,
+
+                "Total Invested:",
+                money(
+                    totalInvestment
+                ),
+                C.pink
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Next Node:",
+                nodes < 25
+                    ? money(
+                        nextNodeCost
+                    )
+                    : "MAX",
+                C.green,
+
+                "Best Upgrade:",
+                nextUpgrade.name,
+                C.yellow
+            )
+        );
+
+
+        children.push(
+            twoColumnRow(
+                "Upgrade Cost:",
+                money(
+                    nextUpgrade.cost
+                ),
+                C.orange,
+
+                "Available:",
+                money(
+                    hacknetAvailable
+                ),
+                C.cyan
+            )
+        );
+
+
+        // ========================================================
+        // TARGET SERVER
+        // ========================================================
+
+        children.push(
+            section(
+                "TARGET SERVER"
+            )
+        );
+
+
+        if (
+            !targetExists
+        ) {
+
+            children.push(
+
+                h(
+                    "div",
+                    {
+                        style: {
+
+                            color:
+                                C.red,
+
+                            fontWeight:
+                                "bold",
+
+                            padding:
+                                "5px",
+
+                            background:
+                                C.panel,
+                        },
+                    },
+
+                    "TARGET NOT FOUND: " +
+                    TARGET
+                )
+            );
+
+        } else {
+
+            children.push(
+                twoColumnRow(
+                    "Target:",
+                    TARGET,
+                    C.cyan,
+
+                    "Root Access:",
+                    targetServer.hasAdminRights
+                        ? "YES"
+                        : "NO",
+                    rootColor
+                )
+            );
+
+
+            children.push(
+                twoColumnRow(
+                    "Backdoor:",
+                    targetServer.backdoorInstalled
+                        ? "INSTALLED"
+                        : "NO",
+                    backdoorColor,
+
+                    "Hack Level:",
+                    hackLevel,
+                    C.yellow
+                )
+            );
+
+
+            children.push(
+                twoColumnRow(
+                    "Avail Balance:",
+                    money(
+                        targetMoney
+                    ),
+                    targetMoneyColor,
+
+                    "Max Balance:",
+                    money(
+                        targetMaxMoney
+                    ),
+                    C.cyan
+                )
+            );
+
+
+            children.push(
+                twoColumnRow(
+                    "Money Percent:",
+                    percent(
+                        moneyPercent
+                    ),
+                    targetMoneyColor,
+
+                    "Growth:",
+                    targetGrowth,
+                    C.orange
+                )
+            );
+
+
+            children.push(
+                twoColumnRow(
+                    "Action:",
+                    action,
+                    actionColor,
+
+                    "Open Ports:",
+                    ports +
+                    " / " +
+                    portsRequired,
+                    ports >=
+                    portsRequired
+                        ? C.green
+                        : C.red
+                )
+            );
         }
 
 
@@ -470,876 +2229,277 @@ export async function main(ns) {
         // SECURITY
         // ========================================================
 
-        const securityDifference =
-            targetSecurity -
-            targetMinSecurity;
+        children.push(
+            section(
+                "SECURITY"
+            )
+        );
 
 
-        let securityColor =
-            C.green;
+        children.push(
+            twoColumnRow(
+                "Current Level:",
+                number(
+                    security,
+                    2
+                ),
+                securityColor,
+
+                "Minimum Level:",
+                number(
+                    minimumSecurity,
+                    2
+                ),
+                C.cyan
+            )
+        );
 
 
-        if (securityDifference > 5) {
+        children.push(
+            twoColumnRow(
+                "Difference:",
+                (
+                    securityDifference >= 0
+                        ? "+"
+                        : ""
+                ) +
+                number(
+                    securityDifference,
+                    2
+                ),
+                securityColor,
 
-            securityColor =
-                C.red;
-
-        } else if (securityDifference > 1) {
-
-            securityColor =
-                C.yellow;
-        }
-
-
-        // ========================================================
-        // MONEY
-        // ========================================================
-
-        const moneyPercent =
-            pct(
-                targetMoney,
-                targetMaxMoney
-            );
-
-
-        let moneyColor =
-            C.red;
-
-
-        if (moneyPercent >= 90) {
-
-            moneyColor =
-                C.green;
-
-        } else if (moneyPercent >= 50) {
-
-            moneyColor =
-                C.yellow;
-        }
+                "Status:",
+                securityDifference >
+                    5
+                    ? "HIGH"
+                    : securityDifference >
+                      1
+                        ? "ELEVATED"
+                        : "OPTIMAL",
+                securityColor
+            )
+        );
 
 
         // ========================================================
         // RAM
         // ========================================================
 
-        const ramPercent =
-            pct(
-                targetRam,
-                targetRamMax
+        children.push(
+            section(
+                "RAM"
+            )
+        );
+
+
+        const targetFreeRam =
+            Math.max(
+                0,
+                targetRamMax -
+                targetRamUsed
             );
 
 
-        // ========================================================
-        // ROOTED NETWORK
-        // ========================================================
-
-        const rootedServers =
-            servers.filter(
-                server =>
-                    ns.hasRootAccess(server)
-            );
+        const targetUtilization =
+            targetRamMax > 0
+                ? targetRamUsed /
+                  targetRamMax
+                : 0;
 
 
-        let largestMoney =
-            "---";
+        children.push(
+            twoColumnRow(
+                "Used:",
+                ram(
+                    targetRamUsed
+                ),
+                C.orange,
 
-        let bestGrowth =
-            "---";
-
-        let largestMoneyValue =
-            -1;
-
-        let bestGrowthValue =
-            -1;
-
-
-        for (
-            const server of rootedServers
-        ) {
-
-            // Never recommend n00dles.
-
-            if (
-                server === "n00dles"
-            ) {
-                continue;
-            }
+                "Free:",
+                ram(
+                    targetFreeRam
+                ),
+                C.green
+            )
+        );
 
 
-            const maxMoney =
-                ns.getServerMaxMoney(
-                    server
-                );
+        children.push(
+            twoColumnRow(
+                "Max:",
+                ram(
+                    targetRamMax
+                ),
+                C.cyan,
 
-            const growth =
-                ns.getServerGrowth(
-                    server
-                );
-
-
-            if (
-                maxMoney >
-                largestMoneyValue
-            ) {
-
-                largestMoneyValue =
-                    maxMoney;
-
-                largestMoney =
-                    server;
-            }
-
-
-            if (
-                growth >
-                bestGrowthValue
-            ) {
-
-                bestGrowthValue =
-                    growth;
-
-                bestGrowth =
-                    server;
-            }
-        }
+                "Utilization:",
+                percent(
+                    targetUtilization
+                ),
+                targetUtilization >=
+                    0.90
+                    ? C.red
+                    : C.white
+            )
+        );
 
 
         // ========================================================
-        // PLAYER RECOMMENDATIONS
+        // TIMERS
         // ========================================================
 
-        let recommendedFaction =
-            "NONE";
-
-        let recommendedFactionRep =
-            -1;
-
-
-        // --------------------------------------------------------
-        // FACTION
-        // --------------------------------------------------------
-
-        for (const faction of factions) {
-
-            try {
-
-                const rep = 0;
- /*                   ns.getFactionRep(
-                        faction
-                    );
-*/
-                if (
-                    rep >
-                    recommendedFactionRep
-                ) {
-
-                    recommendedFactionRep =
-                        rep;
-
-                    recommendedFaction =
-                        faction;
-                }
-
-            } catch {
-                // Ignore unavailable faction data.
-            }
-        }
+        children.push(
+            section(
+                "TIMERS"
+            )
+        );
 
 
-        // --------------------------------------------------------
-        // AUGMENTATION
-        // --------------------------------------------------------
+        children.push(
+            twoColumnRow(
+                "Hack:",
+                formatTime(
+                    hackTime
+                ),
+                C.green,
 
-        let recommendedAugmentation =
-            "NeuroFlux Governor";
-
-        let augmentationFaction =
-            recommendedFaction;
-
-
-        /*
-         * Try to find a useful augmentation from the player's
-         * factions. If Singularity data is unavailable, safely
-         * fall back to NeuroFlux Governor.
-         */
-
-        try {
-
-            let bestAug =
-                "";
-
-            let bestFaction =
-                "";
-
-            for (
-                const faction of factions
-            ) {
-
-                const augs = '';
-                    /*ns.singularity
-                        .getAugmentationsFromFaction(
-                            faction
-                        );
-*/
-                for (
-                    const aug of augs
-                ) {
-
-                    if (
-                        aug ===
-                        "NeuroFlux Governor"
-                    ) {
-                        continue;
-                    }
-
-                    bestAug =
-                        aug;
-
-                    bestFaction =
-                        faction;
-
-                    break;
-                }
-
-                if (bestAug)
-                    break;
-            }
-
-            if (bestAug) {
-
-                recommendedAugmentation =
-                    bestAug;
-
-                augmentationFaction =
-                    bestFaction;
-            }
-
-        } catch {
-
-            // Keep fallback recommendation.
-        }
+                "Grow:",
+                formatTime(
+                    growTime
+                ),
+                C.orange
+            )
+        );
 
 
-        // --------------------------------------------------------
-        // JOB RECOMMENDATION
-        // --------------------------------------------------------
+        children.push(
+            twoColumnRow(
+                "Weaken:",
+                formatTime(
+                    weakenTime
+                ),
+                C.cyan,
 
-        let recommendedJob =
-            "Software Engineering";
-
-
-        if (
-            hackingLevel >= 250
-        ) {
-
-            recommendedJob =
-                "Security Engineer";
-
-        } else if (
-            hackingLevel >= 100
-        ) {
-
-            recommendedJob =
-                "Security Guard";
-
-        } else if (
-            hackingLevel >= 50
-        ) {
-
-            recommendedJob =
-                "IT Consultant";
-        }
+                "Cycle:",
+                formatTime(
+                    Math.max(
+                        hackTime,
+                        growTime,
+                        weakenTime
+                    )
+                ),
+                C.purple
+            )
+        );
 
 
         // ========================================================
-        // PLAYER / SPIDER DISPLAY
+        // FOOTER
         // ========================================================
 
-        ns.printRaw(
+        children.push(
 
-            <div
-                style={{
-                    width: "900px",
+            h(
+                "div",
+                {
+                    style: {
 
-                    background: C.bg,
+                        marginTop:
+                            "9px",
 
-                    color: C.text,
-
-                    fontFamily: "monospace",
-
-                    fontSize: "13px",
-
-                    padding: "10px",
-
-                    boxSizing: "border-box",
-                }}
-            >
-
-                {/* ================================================= */}
-                {/* HEADER */}
-                {/* ================================================= */}
-
-                <div
-                    style={{
-                        display: "flex",
-
-                        alignItems: "center",
-
-                        borderBottom:
-                            `1px solid ${C.border}`,
-
-                        paddingBottom: "6px",
-                    }}
-                >
-
-                    <div
-                        style={{
-                            flex: 1,
-
-                            color: C.bright,
-
-                            fontSize: "20px",
-
-                            fontWeight: "bold",
-                        }}
-                    >
-                        STAT.TSX
-                    </div>
-
-                    <div
-                        style={{
-                            color: C.green,
-
-                            fontWeight: "bold",
-                        }}
-                    >
-                        ● LIVE
-                    </div>
-
-                </div>
-
-
-                {/* ================================================= */}
-                {/* PLAYER */}
-                {/* ================================================= */}
-
-                {section("PLAYER")}
-
-
-                <div
-                    style={{
-                        display: "flex",
-                        width: "100%",
-                    }}
-                >
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Hacking Level",
-                            ns.format.number(
-                                hackingLevel,
-                                0
-                            ),
-                            C.cyan
-                        )}
-
-                        {line(
-                            "Hacking EXP",
-                            ns.format.number(
-                                hackingExp,
-                                0
-                            ),
-                            C.purple
-                        )}
-
-                        {line(
-                            "Home Money",
-                            money(homeMoney),
-                            C.green
-                        )}
-
-                        {line(
-                            "Karma",
-                            karma.toFixed(2),
-                            karma < 0
-                                ? C.red
-                                : C.text
-                        )}
-
-                    </div>
-
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Strength",
-                            strength,
-                            C.orange
-                        )}
-
-                        {line(
-                            "Defense",
-                            defense,
-                            C.orange
-                        )}
-
-                        {line(
-                            "Dexterity",
-                            dexterity,
-                            C.orange
-                        )}
-
-                        {line(
-                            "Agility",
-                            agility,
-                            C.orange
-                        )}
-
-                    </div>
-
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Charisma",
-                            charisma,
-                            C.pink || C.purple
-                        )}
-
-                        {line(
-                            "Intelligence",
-                            intelligence,
-                            C.cyan
-                        )}
-
-                        {line(
-                            "Factions",
-                            factions.length,
-                            C.purple
-                        )}
-
-                        {line(
-                            "Job",
-                            currentJob,
-                            C.yellow
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                {/* ================================================= */}
-                {/* SPIDER */}
-                {/* ================================================= */}
-
-                {section("WORKER SPIDER")}
-
-
-                <div
-                    style={{
-                        display: "flex",
-                        width: "100%",
-                    }}
-                >
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Network RAM",
-                            ram(totalRam),
-                            C.cyan
-                        )}
-
-                        {line(
-                            "RAM Used",
-                            ram(usedRam),
-                            C.yellow
-                        )}
-
-                    </div>
-
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "RAM Available",
-                            ram(availableRam),
-                            C.green
-                        )}
-
-                        {line(
-                            "Utilization",
-                            ns.format.percent(
-                                utilization,
-                                1
-                            ),
-                            utilization >= 0.9
-                                ? C.red
-                                : C.text
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                {/* ================================================= */}
-                {/* TARGET */}
-                {/* ================================================= */}
-
-                {section("TRACKED TARGET")}
-
-
-                {!TARGET && (
-
-                    <div
-                        style={{
-                            color: C.red,
-                            fontWeight: "bold",
-                            padding: "4px 0",
-                        }}
-                    >
-                        NO TARGET
-                    </div>
-
-                )}
-
-
-                {TARGET && !targetExists && (
-
-                    <div
-                        style={{
-                            color: C.red,
-                            fontWeight: "bold",
-                            padding: "4px 0",
-                        }}
-                    >
-                        TARGET NOT FOUND: {TARGET}
-                    </div>
-
-                )}
-
-
-                {TARGET && targetExists && (
-
-                    <div
-                        style={{
-                            display: "flex",
-                            width: "100%",
-                        }}
-                    >
-
-                        {/* ----------------------------------------- */}
-                        {/* TARGET LEFT */}
-                        {/* ----------------------------------------- */}
-
-                        <div style={{ flex: 1 }}>
-
-                            {line(
-                                "Target",
-                                TARGET,
-                                targetColor
-                            )}
-
-                            {line(
-                                "Root Access",
-                                targetRooted
-                                    ? "YES"
-                                    : "NO",
-                                targetRooted
-                                    ? C.green
-                                    : C.red
-                            )}
-
-                            {line(
-                                "Backdoor",
-                                targetBackdoor
-                                    ? "INSTALLED"
-                                    : "NO",
-                                targetBackdoor
-                                    ? C.green
-                                    : C.yellow
-                            )}
-
-                            {line(
-                                "Hack Chance",
-                                Math.floor(
-                                    targetChance * 100
-                                ) + "%",
-                                targetChance >= 0.8
-                                    ? C.green
-                                    : targetChance >= 0.4
-                                        ? C.yellow
-                                        : C.red
-                            )}
-
-                            {line(
-                                "Required Level",
-                                targetHackLevel,
-                                hackingLevel >= targetHackLevel
-                                    ? C.green
-                                    : C.red
-                            )}
-
-                        </div>
-
-
-                        {/* ----------------------------------------- */}
-                        {/* TARGET RIGHT */}
-                        {/* ----------------------------------------- */}
-
-                        <div style={{ flex: 1 }}>
-
-                            {line(
-                                "Money",
-                                money(targetMoney),
-                                moneyColor
-                            )}
-
-                            {line(
-                                "Max Money",
-                                money(targetMaxMoney),
-                                C.cyan
-                            )}
-
-                            {line(
-                                "Money %",
-                                Math.floor(
-                                    moneyPercent
-                                ) + "%",
-                                moneyColor
-                            )}
-
-                            {line(
-                                "Growth",
-                                targetGrowth.toFixed(2) + "x",
-                                C.orange
-                            )}
-
-                            {line(
-                                "Security",
-                                targetSecurity.toFixed(2) +
-                                " / " +
-                                targetMinSecurity.toFixed(2),
-                                securityColor
-                            )}
-
-                        </div>
-
-
-                        {/* ----------------------------------------- */}
-                        {/* TARGET RESOURCE */}
-                        {/* ----------------------------------------- */}
-
-                        <div style={{ flex: 1 }}>
-
-                            {line(
-                                "RAM",
-                                ram(targetRam) +
-                                " / " +
-                                ram(targetRamMax),
-                                C.text
-                            )}
-
-                            {line(
-                                "RAM Used",
-                                Math.floor(
-                                    ramPercent
-                                ) + "%",
-                                ramPercent >= 90
-                                    ? C.red
-                                    : C.text
-                            )}
-
-                            {line(
-                                "Ports",
-                                targetPorts +
-                                " / " +
-                                targetPortsRequired,
-                                targetPorts >=
-                                targetPortsRequired
-                                    ? C.green
-                                    : C.red
-                            )}
-
-                            {line(
-                                "Security Above Min",
-                                securityDifference.toFixed(2),
-                                securityColor
-                            )}
-
-                        </div>
-
-                    </div>
-
-                )}
-
-
-                {/* ================================================= */}
-                {/* NETWORK HIGHLIGHTS */}
-                {/* ================================================= */}
-
-                {section("NETWORK HIGHLIGHTS")}
-
-
-                <div
-                    style={{
-                        display: "flex",
-                        width: "100%",
-                    }}
-                >
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Largest Max Money",
-                            largestMoney,
-                            C.green
-                        )}
-
-                    </div>
-
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Best Growth",
-                            bestGrowth,
-                            C.orange
-                        )}
-
-                    </div>
-
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Tracked By Worker",
-                            TARGET || "NONE",
-                            TARGET
-                                ? C.cyan
-                                : C.gray
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                {/* ================================================= */}
-                {/* RECOMMENDATIONS */}
-                {/* ================================================= */}
-
-                {section("RECOMMENDATIONS")}
-
-
-                <div
-                    style={{
-                        display: "flex",
-                        width: "100%",
-                    }}
-                >
-
-                    {/* --------------------------------------------- */}
-                    {/* FACTION */}
-                    {/* --------------------------------------------- */}
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Faction",
-                            recommendedFaction,
-                            recommendedFaction !== "NONE"
-                                ? C.purple
-                                : C.gray
-                        )}
-
-                        {line(
-                            "Faction Rep",
-                            recommendedFactionRep >= 0
-                                ? ns.format.number(
-                                    recommendedFactionRep,
-                                    0
-                                )
-                                : "---",
-                            C.cyan
-                        )}
-
-                    </div>
-
-
-                    {/* --------------------------------------------- */}
-                    {/* JOB */}
-                    {/* --------------------------------------------- */}
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Job",
-                            recommendedJob,
-                            C.yellow
-                        )}
-
-                        {line(
-                            "Current",
-                            jobCompany
-                                ? jobCompany
-                                : "UNEMPLOYED",
-                            C.text
-                        )}
-
-                    </div>
-
-
-                    {/* --------------------------------------------- */}
-                    {/* AUGMENTATION */}
-                    {/* --------------------------------------------- */}
-
-                    <div style={{ flex: 1 }}>
-
-                        {line(
-                            "Augmentation",
-                            recommendedAugmentation,
-                            C.orange
-                        )}
-
-                        {line(
-                            "Faction",
-                            augmentationFaction || "---",
-                            C.purple
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                {/* ================================================= */}
-                {/* FOOTER */}
-                {/* ================================================= */}
-
-                <div
-                    style={{
-                        marginTop: "8px",
-
-                        paddingTop: "5px",
+                        paddingTop:
+                            "5px",
 
                         borderTop:
-                            `1px solid ${C.border}`,
+                            "1px solid " +
+                            C.border,
 
-                        color: C.gray,
-                    }}
-                >
-                    Worker Spider online
-                    {"  |  "}
-                    Monitoring {servers.length} servers
-                    {"  |  "}
-                    Target: {TARGET || "NONE"}
-                </div>
+                        color:
+                            C.gray,
 
-            </div>
+                        fontSize:
+                            "11px",
+
+                        whiteSpace:
+                            "nowrap",
+                    },
+                },
+
+                "Worker Spider online",
+                "  |  ",
+                "Monitoring ",
+                String(
+                    servers.length
+                ),
+                " servers",
+                "  |  ",
+                "mainHack.js: ",
+                String(
+                    deploymentThreads
+                ),
+                " threads",
+                "  |  ",
+                "Target: ",
+                TARGET
+            )
+        );
+
+
+        // ========================================================
+        // ROOT ELEMENT
+        // ========================================================
+
+        const root =
+            h(
+                "div",
+                {
+                    style: {
+
+                        width:
+                            "1000px",
+
+                        minHeight:
+                            "100%",
+
+                        boxSizing:
+                            "border-box",
+
+                        padding:
+                            "9px",
+
+                        background:
+                            C.bg,
+
+                        color:
+                            C.white,
+
+                        fontFamily:
+                            "monospace",
+
+                        fontSize:
+                            "13px",
+
+                        lineHeight:
+                            "1.25",
+
+                        overflow:
+                            "hidden",
+                    },
+                },
+
+                children
+            );
+
+
+        // ========================================================
+        // PRINT
+        // ========================================================
+
+        ns.clearLog();
+
+        ns.printRaw(
+            root
         );
     }
 
@@ -1355,21 +2515,29 @@ export async function main(ns) {
     // LIVE UPDATE
     // ============================================================
 
-    while (true) {
+    while (
+        true
+    ) {
 
-        await ns.sleep(REFRESH);
+        await ns.sleep(
+            REFRESH
+        );
+
 
         try {
 
             render();
 
-        } catch (e) {
+        } catch (
+            error
+        ) {
 
             ns.print(
                 "STAT.TSX error: " +
-                String(e)
+                String(
+                    error
+                )
             );
-
         }
     }
 }
