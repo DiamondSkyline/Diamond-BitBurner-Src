@@ -47,6 +47,17 @@ export async function main(ns) {
         return;
     }
 
+    // ==========================================
+    // Opening Log window, sizing it, and placing it, ONLY IF BEING RUN ON HOME SERVER
+    // ==========================================
+    var isHome = (ns.getHostname() == ("home"));
+    if (isHome){
+      ns.ui.openTail();
+      ns.ui.resizeTail(300, 150)
+    }
+
+
+
 
     // ==========================================
     // MAIN LOOP
@@ -98,7 +109,7 @@ export async function main(ns) {
         // ======================================
 
         if (
-            securityDifference > 0.5
+            securityDifference > 5
         ) {
 
             ns.clearLog();
